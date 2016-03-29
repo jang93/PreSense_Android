@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences sharedPref;
     private static final String TAG = "MyActivity";
     public static final JSONObject object = new JSONObject();
+    private boolean firstStart=true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,12 +63,22 @@ public class MainActivity extends AppCompatActivity {
         // TO BE REMOVED
         if (sharedPref.contains("webhook")) {
             Webhook.setText(sharedPref.getString("webhook",""));
+            try {
+                object.put("webhook", sharedPref.getString("webhook", ""));
+            }catch(JSONException e){
+                e.printStackTrace();
+            }
         }else{
             Webhook.setText("https://presensebot.herokuapp.com/hubot/notify/presensetest");
         }
         Name =(EditText)findViewById(R.id.editText);
         if (sharedPref.contains("user")){
             Name.setText(sharedPref.getString("user",""));
+            try {
+                object.put("user", sharedPref.getString("user", ""));
+            }catch(JSONException e){
+                e.printStackTrace();
+            }
         }else{
             Name.setText("Name");
         }
@@ -76,6 +87,38 @@ public class MainActivity extends AppCompatActivity {
         beaconManager.setRangingListener(new BeaconManager.RangingListener() {
             @Override
             public void onBeaconsDiscovered(Region region, List<Beacon> list) {
+
+                if (firstStart && sharedPref.getBoolean("registered", false)) {
+                    final String currentStatus;
+                    if (list.isEmpty()) {
+                        editor.putString("status", "out of office");
+                        currentStatus="out of office";
+                    } else {
+                        nearestBeacon = list.get(0);
+                        if (sharedPref.getInt("beaconmajor", 0) == nearestBeacon.getMajor() && sharedPref.getInt("beaconminor", 0) == nearestBeacon.getMinor()) {
+                            editor.putString("status", "available");
+                            currentStatus="available";
+                        } else {
+                            editor.putString("status", "out of office");
+                            currentStatus="out of office";
+                        }
+                    }
+                    Thread thread = new Thread(new Runnable(){
+                        @Override
+                        public void run() {
+                            try {
+                                POST(sharedPref.getString("webhook", ""), currentStatus);
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                    thread.start();
+                    editor.commit();
+                }
+
+                firstStart = false;
                 if (!list.isEmpty()) {
                     nearestBeacon = list.get(0);
                     editor.putBoolean("inrange",true);
@@ -176,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
     public void Available (View view){
         if (sharedPref.getBoolean("registered",false)&&sharedPref.contains("status"))
         {
-            if(sharedPref.getString("status","").equalsIgnoreCase("out")){
+            if(sharedPref.getString("status","").equalsIgnoreCase("out of office")){
                 Toast.makeText(getBaseContext(), "Status can only be changed in office!" , Toast.LENGTH_LONG).show();
             }
             else {
@@ -206,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void Busy (View view){
         if (sharedPref.getBoolean("registered",false)&&sharedPref.contains("status")) {
-            if (sharedPref.getString("status", "").equalsIgnoreCase("out")) {
+            if (sharedPref.getString("status", "").equalsIgnoreCase("out of office")) {
                 Toast.makeText(getBaseContext(), "Status can only be changed in office!", Toast.LENGTH_LONG).show();
             } else {
                 Thread thread = new Thread(new Runnable() {
@@ -231,7 +274,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public static String POST(String url, String text) {
-        InputStream inputStream = null;
+        InputStream inputStream;
         String result="";
         try {
             object.put("status", text);
@@ -246,7 +289,7 @@ public class MainActivity extends AppCompatActivity {
             // 2. make POST request to the given URL
             HttpPost httpPost = new HttpPost(url);
 
-            String json = "";
+            String json;
 
             // 4. convert JSONObject to JSON to String
             json = object.toString();

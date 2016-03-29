@@ -30,13 +30,14 @@ public class BackgroundMonitoring extends Application {
         sharedPref = this.getSharedPreferences("userinfo",Context.MODE_PRIVATE);
         editor= sharedPref.edit();
 
+
         beaconManager = new BeaconManager(getApplicationContext());
         beaconManager.setMonitoringListener(new BeaconManager.MonitoringListener() {
             @Override
             public void onEnteredRegion(Region region, List<Beacon> list) {
                 //TO CHANGE & send info to BOT
                 if (sharedPref.getBoolean("registered",false)) {
-                    editor.putString("status","in");
+                    editor.putString("status","available");
                     editor.commit();
                     Thread thread = new Thread(new Runnable(){
                         @Override
@@ -56,13 +57,13 @@ public class BackgroundMonitoring extends Application {
             public void onExitedRegion(Region region) {
                 // TO SEND INFO TO BOT
                 if (sharedPref.getBoolean("registered", false)) {
-                    editor.putString("status","out");
+                    editor.putString("status","out of office");
                     editor.commit();
                     Thread thread = new Thread(new Runnable(){
                         @Override
                         public void run() {
                             try {
-                                MainActivity.POST(sharedPref.getString("webhook", ""),"out");
+                                MainActivity.POST(sharedPref.getString("webhook", ""),"out of office");
 
                             } catch (Exception e) {
                                 e.printStackTrace();
