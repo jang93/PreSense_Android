@@ -39,6 +39,7 @@ public class BackgroundMonitoring extends Application {
                 if (sharedPref.getBoolean("registered",false)) {
                     editor.putString("status","available");
                     editor.commit();
+                    MainActivity.Status.setText("Available");
                     Thread thread = new Thread(new Runnable(){
                         @Override
                         public void run() {
@@ -59,6 +60,7 @@ public class BackgroundMonitoring extends Application {
                 if (sharedPref.getBoolean("registered", false)) {
                     editor.putString("status","out of office");
                     editor.commit();
+                    MainActivity.Status.setText("Out of office");
                     Thread thread = new Thread(new Runnable(){
                         @Override
                         public void run() {

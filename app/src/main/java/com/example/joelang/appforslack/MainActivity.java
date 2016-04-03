@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private Beacon nearestBeacon=null;
     private EditText Name;
     private EditText Webhook;
+    public static EditText Status;
     private SharedPreferences.Editor editor;
     private SharedPreferences sharedPref;
     private static final String TAG = "MyActivity";
@@ -53,11 +54,21 @@ public class MainActivity extends AppCompatActivity {
         //shared preferences used to store user info
         Context context = this.getApplicationContext();
         sharedPref = context.getSharedPreferences("userinfo", Context.MODE_PRIVATE);
+        Status = (EditText)findViewById(R.id.editText3);
+
+        if (Status != null) {
+            Status.setFocusable(false);
+        }
         editor= sharedPref.edit();
         if(!sharedPref.contains("registered")){
             editor.putBoolean("registered", false);
             editor.commit();
+            Status.setText("Unregistered");
         }
+        else {
+            Status.setText("Registered");
+        }
+
 
         Webhook = (EditText)findViewById(R.id.editText2);
         // TO BE REMOVED
@@ -93,14 +104,17 @@ public class MainActivity extends AppCompatActivity {
                     if (list.isEmpty()) {
                         editor.putString("status", "out of office");
                         currentStatus="out of office";
+                        Status.setText("Out of office");
                     } else {
                         nearestBeacon = list.get(0);
                         if (sharedPref.getInt("beaconmajor", 0) == nearestBeacon.getMajor() && sharedPref.getInt("beaconminor", 0) == nearestBeacon.getMinor()) {
                             editor.putString("status", "available");
                             currentStatus="available";
+                            Status.setText("Available");
                         } else {
                             editor.putString("status", "out of office");
                             currentStatus="out of office";
+                            Status.setText("Out of office");
                         }
                     }
                     Thread thread = new Thread(new Runnable(){
@@ -185,8 +199,9 @@ public class MainActivity extends AppCompatActivity {
             editor.putString("webhook", webhook);
             editor.putInt("beaconmajor", nearestBeacon.getMajor());
             editor.putInt("beaconminor", nearestBeacon.getMinor());
-            editor.putString("status","available");
+            editor.putString("status", "available");
             editor.commit();
+            Status.setText("Available");
 
             try {
                 object.put("user", name);
@@ -235,6 +250,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
                 thread.start();
+                Status.setText("Available");
 
 
                 Toast.makeText(getBaseContext(), "Status is now set to: Available.", Toast.LENGTH_LONG).show();
@@ -264,6 +280,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
                 thread.start();
+                Status.setText("Busy");
                 Toast.makeText(getBaseContext(), "Status is now set to: Busy.", Toast.LENGTH_LONG).show();
             }
         }
