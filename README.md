@@ -20,5 +20,5 @@ The main PreSense repository can be found here : https://github.com/chaychoong/p
 
 Enjoy!
 
-* Note: for Android users, for your status to be automatically changed when you are enter or exit your beacon range, the app should be running in the background in the "Recent Apps" tab. If you force stop the app or swipe it close, the background monitoring will not update the bot until you open up the app again.
+* Note: for Android users, for your status to be automatically changed when you are enter or exit your beacon range, the app should be running in the background in the "Recent Apps" tab. If you force stop the app or swipe it close, the background monitoring will not update your status until you open up the app again.
 
